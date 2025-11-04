@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM - Automation</title>
+    <!-- 1. Include Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Include Lucide Icon Library -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+
+        /* Ensure layout is fullscreen */
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent body scroll */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* Base styles for nav links */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 1rem;
+            border-radius: 0.375rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500; /* medium */
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-link:hover {
+            background-color: #f3f4f6; /* gray-100 */
+            color: #111827; /* gray-900 */
+        }
+        .nav-link.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: #ffffff; /* white */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Base button styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .btn-primary {
+            background-color: #4f46e5; /* indigo-600 */
+            color: #fff;
+            border-color: #4f46e5;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca; /* indigo-700 */
+        }
+        
+        /* Styles for the automation workflow */
+        .workflow-step {
+            width: 320px;
+            background-color: #fff;
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            margin: 0 auto;
+        }
+        .workflow-step-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+        }
+        .workflow-step-header.trigger { background-color: #ecfdf5; color: #065f46; } /* emerald */
+        .workflow-step-header.action { background-color: #eef2ff; color: #3730a3; } /* indigo */
+        .workflow-step-header.condition { background-color: #fefce8; color: #a16207; } /* yellow */
+        
+        .workflow-step-body {
+            padding: 1rem;
+            font-size: 0.875rem;
+            color: #374151; /* gray-700 */
+        }
+
+        /* Connector line */
+        .workflow-connector {
+            height: 40px;
+            width: 2px;
+            background-color: #d1d5db; /* gray-300 */
+            margin: 0 auto;
+        }
+        
+        /* Conditional branch */
+        .workflow-branch {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 0 1rem;
+        }
+        .workflow-branch-path {
+            flex-grow: 1;
+            max-width: 50%;
+            position: relative;
+        }
+        /* Top horizontal line for branch */
+        .workflow-branch-path::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 2px;
+            background-color: #d1d5db;
+        }
+        /* Right side branch */
+        .workflow-branch-path:last-child::before {
+            left: 0;
+            width: 50%;
+        }
+         /* Vertical line up to horizontal */
+        .workflow-branch-connector {
+            height: 20px;
+            width: 2px;
+            background-color: #d1d5db;
+            margin: 0 auto;
+        }
+        .workflow-branch-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-align: center;
+            padding: 0.5rem;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 9999px;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div class="flex h-screen bg-white">
+        <!-- Sidebar Navigation -->
+       <!-- Sidebar Navigation -->
+        <nav class="w-64 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
+            <div class="h-16 flex-shrink-0 flex items-center justify-center border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-indigo-600">ApexCRM</h2>
+            </div>
+            <div class="flex-grow overflow-y-auto">
+                <ul class="py-4">
+                    <!-- Main Navigation -->
+                    <li><a href="/index.html" class="nav-link" data-page="page-dashboard"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    
+                    <!-- Sales Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Sales</li>
+                    <li><a href="/contacts.html" class="nav-link" data-page="page-contact-list"><i data-lucide="users" class="w-5 h-5 mr-3"></i>Contacts</a></li>
+                    <li><a href="/companies.html" class="nav-link" data-page="page-company-list"><i data-lucide="building-2" class="w-5 h-5 mr-3"></i>Companies</a></li>
+                    <li><a href="/deals_pipeline.html" class="nav-link" data-page="page-deal-pipeline"><i data-lucide="kanban" class="w-5 h-5 mr-3"></i>Deals Pipeline</a></li>
+                    
+                    <!-- Service Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</li>
+                    <li><a href="/supportticket.html" class="nav-link" data-page="page-ticket-list"><i data-lucide="life-buoy" class="w-5 h-5 mr-3"></i>Support Tickets</a></li>
+                    
+                    <!-- Marketing Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Marketing</li>
+                    <li><a href="/campaigns.html" class="nav-link" data-page="page-campaign-list"><i data-lucide="send" class="w-5 h-5 mr-3"></i>Campaigns</a></li>
+                    
+                    <!-- Analytics & Tools -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Analytics & Tools</li>
+                    <li><a href="/reports.html" class="nav-link" data-page="page-reports"><i data-lucide="pie-chart" class="w-5 h-5 mr-3"></i>Reports</a></li>
+                    <li><a href="/automation.html" class="nav-link active" data-page="page-automation"><i data-lucide="zap" class="w-5 h-5 mr-3"></i>Automation</a></li>
+                    <li><a href="/calender.html" class="nav-link" data-page="page-calendar"><i data-lucide="calendar" class="w-5 h-5 mr-3"></i>Calendar</a></li>
+                </ul>
+            </div>
+            <a href="/profile.html" class="block" data-page="page-calendar">
+    <div class="flex-shrink-0 p-4 border-t border-gray-200 hover:bg-gray-50">
+        <div class="flex items-center">
+            <img class="w-10 h-10 rounded-full" src="https://placehold.co/40x40/93c5fd/FFFFFF?text=A" alt="Alex Johnson">
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900">Alex Johnson</p>
+                <p class="text-xs text-gray-500">Sales Manager</p>
+            </div>
+        </div>
+    </div>
+</a>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Page Header -->
+            <div class="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-gray-900">Automation</h1>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-gray-600">Workflow: <strong>New Lead Follow-up</strong></span>
+                    <button class="btn btn-primary">
+                        <i data-lucide="save" class="w-4 h-4 mr-2"></i> Save Workflow
+                    </button>
+                </div>
+            </div>
+
+            <!-- Automation Builder Layout -->
+            <div class="flex-1 flex overflow-hidden">
+                
+                <!-- Left Panel: Steps / Tools -->
+                <aside class="w-72 bg-gray-50 border-r border-gray-200 p-4 overflow-y-auto">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Workflow Steps</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <div class="block p-3 rounded-lg bg-emerald-100 border border-emerald-300">
+                                <p class="text-sm font-semibold text-emerald-800">1. Trigger: New Lead</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="block p-3 rounded-lg bg-indigo-100 border border-indigo-300">
+                                <p class="text-sm font-semibold text-indigo-800">2. Action: Send Welcome Email</p>
+                            </div>
+                        </li>
+                         <li>
+                            <div class="block p-3 rounded-lg bg-gray-100 border border-gray-300">
+                                <p class="text-sm font-semibold text-gray-800">3. Action: Wait 1 Day</p>
+                            </div>
+                        </li>
+                         <li>
+                            <div class="block p-3 rounded-lg bg-yellow-100 border border-yellow-300">
+                                <p class="text-sm font-semibold text-yellow-800">4. Condition: Email Opened?</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="block p-3 rounded-lg bg-indigo-100 border border-indigo-300 ml-4">
+                                <p class="text-sm font-medium text-indigo-800">5a. (Yes) Update Status</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="block p-3 rounded-lg bg-indigo-100 border border-indigo-300 ml-4">
+                                <p class="text-sm font-medium text-indigo-800">5b. (No) Create Task</p>
+                            </div>
+                        </li>
+                    </ul>
+                    <button class="btn btn-secondary-outline w-full mt-6">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add Step
+                    </button>
+                </aside>
+
+                <!-- Center Canvas: Visual Workflow -->
+                <section class="flex-1 p-8 overflow-y-auto bg-gray-100" style="background-image: radial-gradient(#d1d5db 0.5px, transparent 0.5px); background-size: 15px 15px;">
+                    <div class="max-w-md mx-auto">
+                        
+                        <!-- Step 1: Trigger -->
+                        <div class="workflow-step">
+                            <div class="workflow-step-header trigger">
+                                <i data-lucide="zap" class="w-5 h-5 mr-2"></i>
+                                <span>Trigger</span>
+                            </div>
+                            <div class="workflow-step-body">
+                                <p><strong>When:</strong> A new contact is created</p>
+                                <p class="mt-2 text-gray-500">Runs when a new lead is added to the system.</p>
+                            </div>
+                        </div>
+                        <div class="workflow-connector"></div>
+
+                        <!-- Step 2: Action -->
+                        <div class="workflow-step">
+                            <div class="workflow-step-header action">
+                                <i data-lucide="send" class="w-5 h-5 mr-2"></i>
+                                <span>Action</span>
+                            </div>
+                            <div class="workflow-step-body">
+                                <p><strong>Action:</strong> Send an email</p>
+                                <p class="mt-2 text-gray-500">Template: "Welcome to ApexCRM!"</p>
+                            </div>
+                        </div>
+                        <div class="workflow-connector"></div>
+                        
+                        <!-- Step 3: Action (Wait) -->
+                        <div class="workflow-step">
+                            <div class="workflow-step-header action">
+                                <i data-lucide="clock" class="w-5 h-5 mr-2"></i>
+                                <span>Action</span>
+                            </div>
+                            <div class="workflow-step-body">
+                                <p><strong>Action:</strong> Wait for a period of time</p>
+                                <p class="mt-2 text-gray-500">Duration: 1 Day</p>
+                            </div>
+                        </div>
+                        <div class="workflow-connector"></div>
+
+                        <!-- Step 4: Condition -->
+                        <div class="workflow-step">
+                            <div class="workflow-step-header condition">
+                                <i data-lucide="git-fork" class="w-5 h-5 mr-2"></i>
+                                <span>Condition</span>
+                            </div>
+                            <div class="workflow-step-body">
+                                <p><strong>Check:</strong> Has contact property...</p>
+                                <p class="mt-2 text-gray-500">"Welcome Email" status is "Opened"</p>
+                            </div>
+                        </div>
+                        <div class="workflow-connector"></div>
+
+                        <!-- Step 5: Conditional Branch -->
+                        <div class="workflow-branch">
+                            <!-- Path A: Yes -->
+                            <div class="workflow-branch-path text-center">
+                                <div class="workflow-branch-connector"></div>
+                                <span class="workflow-branch-label">Yes</span>
+                                <div class="workflow-step">
+                                    <div class="workflow-step-header action">
+                                        <i data-lucide="check-check" class="w-5 h-5 mr-2"></i>
+                                        <span>Action</span>
+                                    </div>
+                                    <div class="workflow-step-body">
+                                        <p><strong>Action:</strong> Update contact property</p>
+                                        <p class="mt-2 text-gray-500">Set "Lifecycle Stage" to "Contacted"</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Path B: No -->
+                            <div class="workflow-branch-path text-center">
+                                <div class="workflow-branch-connector"></div>
+                                <span class="workflow-branch-label">No</span>
+                                <div class="workflow-step">
+                                    <div class="workflow-step-header action">
+                                        <i data-lucide="phone-call" class="w-5 h-5 mr-2"></i>
+                                        <span>Action</span>
+                                    </div>
+                                    <div class="workflow-step-body">
+                                        <p><strong>Action:</strong> Create a new task</p>
+                                        <p class="mt-2 text-gray-500">"Call lead" - Assign to contact owner.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Simple script to initialize icons
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

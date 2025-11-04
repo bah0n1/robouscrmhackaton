@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM - Reports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+
+        html, body { height: 100%; font-family: 'Inter', sans-serif; overflow: auto; }
+
+        .nav-link { display: flex; align-items: center; padding: 0.75rem 1.5rem; margin: 0.25rem 1rem; border-radius: 0.375rem; color: #374151; font-weight: 500; transition: all 0.2s ease-in-out; }
+        .nav-link:hover { background-color: #f3f4f6; color: #111827; }
+        .nav-link.active { background-color: #4f46e5; color: #fff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06); }
+
+        .form-input, .form-select { display: block; width: 100%; border-radius: 0.375rem; border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; font-size: 0.875rem; line-height: 1.25rem; }
+        .form-input:focus, .form-select:focus { outline: 2px solid transparent; outline-offset: 2px; border-color: #4f46e5; box-shadow: 0 0 0 2px #c7d2fe; }
+
+        .btn { display: inline-flex; align-items: center; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; font-size: 0.875rem; line-height: 1.25rem; cursor: pointer; transition: background-color 0.2s ease; border: 1px solid transparent; }
+        .btn-sm { padding: 0.25rem 0.75rem; font-size: 0.75rem; line-height: 1rem; }
+        .btn-primary { background-color: #4f46e5; color: #fff; border-color: #4f46e5; }
+        .btn-primary:hover { background-color: #4338ca; }
+        .btn-secondary-outline { background-color: #fff; color: #374151; border-color: #d1d5db; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .btn-secondary-outline:hover { background-color: #f9fafb; }
+
+        .chart-container { background-color: #fff; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06); position: relative; }
+
+        .gauge-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+        .gauge-text .value { font-size: 2.5rem; font-weight: bold; color: #4f46e5; }
+        .gauge-text .subtitle { font-size: 0.875rem; color: #6b7280; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<div class="flex min-h-screen bg-white">
+    <!-- Sidebar -->
+    <!-- Sidebar Navigation -->
+        <nav class="w-64 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
+            <div class="h-16 flex-shrink-0 flex items-center justify-center border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-indigo-600">ApexCRM</h2>
+            </div>
+            <div class="flex-grow overflow-y-auto">
+                <ul class="py-4">
+                    <!-- Main Navigation -->
+                    <li><a href="/index.html" class="nav-link" data-page="page-dashboard"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    
+                    <!-- Sales Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Sales</li>
+                    <li><a href="/contacts.html" class="nav-link" data-page="page-contact-list"><i data-lucide="users" class="w-5 h-5 mr-3"></i>Contacts</a></li>
+                    <li><a href="/companies.html" class="nav-link" data-page="page-company-list"><i data-lucide="building-2" class="w-5 h-5 mr-3"></i>Companies</a></li>
+                    <li><a href="/deals_pipeline.html" class="nav-link" data-page="page-deal-pipeline"><i data-lucide="kanban" class="w-5 h-5 mr-3"></i>Deals Pipeline</a></li>
+                    
+                    <!-- Service Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</li>
+                    <li><a href="/supportticket.html" class="nav-link" data-page="page-ticket-list"><i data-lucide="life-buoy" class="w-5 h-5 mr-3"></i>Support Tickets</a></li>
+                    
+                    <!-- Marketing Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Marketing</li>
+                    <li><a href="/campaigns.html" class="nav-link" data-page="page-campaign-list"><i data-lucide="send" class="w-5 h-5 mr-3"></i>Campaigns</a></li>
+                    
+                    <!-- Analytics & Tools -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Analytics & Tools</li>
+                    <li><a href="/reports.html" class="nav-link active" data-page="page-reports"><i data-lucide="pie-chart" class="w-5 h-5 mr-3"></i>Reports</a></li>
+                    <li><a href="/automation.html" class="nav-link" data-page="page-automation"><i data-lucide="zap" class="w-5 h-5 mr-3"></i>Automation</a></li>
+                    <li><a href="/calender.html" class="nav-link" data-page="page-calendar"><i data-lucide="calendar" class="w-5 h-5 mr-3"></i>Calendar</a></li>
+                </ul>
+            </div>
+            <a href="/profile.html" class="block" data-page="page-calendar">
+    <div class="flex-shrink-0 p-4 border-t border-gray-200 hover:bg-gray-50">
+        <div class="flex items-center">
+            <img class="w-10 h-10 rounded-full" src="https://placehold.co/40x40/93c5fd/FFFFFF?text=A" alt="Alex Johnson">
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900">Alex Johnson</p>
+                <p class="text-xs text-gray-500">Sales Manager</p>
+            </div>
+        </div>
+    </div>
+</a>
+        </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 md:p-10 space-y-6">
+
+        <!-- Page Header -->
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
+        </div>
+
+        <!-- Filters -->
+        <div class="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row items-center gap-4">
+            <div class="flex-grow w-full">
+                <label for="date-range" class="block text-sm font-medium text-gray-700">Date Range</label>
+                <input type="text" id="date-range" class="form-input mt-1" value="Last 90 Days">
+            </div>
+            <button class="btn btn-secondary-outline md:mt-6 w-full md:w-auto">
+                <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Apply Filter
+            </button>
+        </div>
+
+        <!-- Reports Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Sales Pipeline by Stage -->
+            <div class="chart-container">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Sales Pipeline by Stage</h3>
+                    <button class="btn btn-secondary-outline btn-sm">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
+                    </button>
+                </div>
+                <div class="h-64 md:h-80"><canvas id="salesPipelineChart"></canvas></div>
+            </div>
+
+            <!-- Deals Won vs Lost -->
+            <div class="chart-container">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Deals Won vs. Lost (Last 90 Days)</h3>
+                    <button class="btn btn-secondary-outline btn-sm">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
+                    </button>
+                </div>
+                <div class="h-64 md:h-80 max-w-xs mx-auto"><canvas id="dealsWonLostChart"></canvas></div>
+            </div>
+
+            <!-- Sales Quota Attainment -->
+            <div class="chart-container flex flex-col items-center justify-center">
+                <div class="flex items-center justify-between mb-4 w-full">
+                    <h3 class="text-lg font-semibold text-gray-900">Sales Quota Attainment</h3>
+                    <button class="btn btn-secondary-outline btn-sm">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
+                    </button>
+                </div>
+                <div class="relative h-48 w-48">
+                    <canvas id="quotaAttainmentChart"></canvas>
+                    <div class="gauge-text">
+                        <span class="value">82%</span>
+                        <span class="subtitle">of $250k</span>
+                    </div>
+                </div>
+                <p class="mt-4 text-center text-gray-600">Target: $250,000 | Attained: $205,000</p>
+            </div>
+
+            <!-- Revenue by Product Line -->
+            <div class="chart-container">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Revenue by Product Line</h3>
+                    <button class="btn btn-secondary-outline btn-sm">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
+                    </button>
+                </div>
+                <div class="h-64 md:h-80"><canvas id="revenueByProductChart"></canvas></div>
+            </div>
+
+            <!-- Sales Rep Performance -->
+            <div class="chart-container">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Sales Rep Performance</h3>
+                    <button class="btn btn-secondary-outline btn-sm">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Export
+                    </button>
+                </div>
+                <div class="h-64 md:h-80"><canvas id="salesRepPerformanceChart"></canvas></div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // MOCK DATA
+    const salesPipelineData = { labels: ["New Lead","Contacted","Proposal Sent","Negotiation"], values: [25000,50000,15000,5000] };
+    const dealsWonLostData = { labels: ["Won","Lost","In Progress"], values: [30000,12000,95000] };
+    const quotaAttainmentData = { attained: 82, remaining: 18 };
+    const revenueByProductData = { labels:['Jan','Feb','Mar','Apr','May','Jun'], productA:[12000,15000,10000,13000,17000,18000], productB:[8000,9000,8500,10000,11000,12000], productC:[5000,4000,6000,5500,7000,6500] };
+    const salesRepPerformanceData = [
+        { x: 20, y: 30000, r: 25, label: 'Alice' },
+        { x: 35, y: 15000, r: 40, label: 'Bob' },
+        { x: 15, y: 50000, r: 20, label: 'Charlie' },
+        { x: 25, y: 25000, r: 30, label: 'David' }
+    ];
+
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // 1. Sales Pipeline
+    new Chart(document.getElementById('salesPipelineChart'), {
+        type: 'bar',
+        data: { labels: salesPipelineData.labels, datasets: [{ label: 'Pipeline Value ($)', data: salesPipelineData.values, backgroundColor:'rgba(79,70,229,0.7)', borderColor:'rgba(79,70,229,1)', borderWidth:1, borderRadius:4 }] },
+        options: { responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, ticks:{callback:(v)=>'$'+(v/1000)+'k'}}}, plugins:{legend:{display:false}, tooltip:{callbacks:{label:(ctx)=>` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}`}}} }
+    });
+
+    // 2. Deals Won/Lost
+    new Chart(document.getElementById('dealsWonLostChart'), {
+        type:'doughnut',
+        data:{ labels: dealsWonLostData.labels, datasets:[{ data: dealsWonLostData.values, backgroundColor:['rgba(16,185,129,0.8)','rgba(239,68,68,0.8)','rgba(209,213,219,0.8)'], borderColor:'#fff', borderWidth:2 }] },
+        options:{ responsive:true, plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:(ctx)=>` ${ctx.label}: $${ctx.parsed.toLocaleString()}`}}} }
+    });
+
+    // 3. Quota Attainment (Semi-circle)
+    new Chart(document.getElementById('quotaAttainmentChart'), {
+        type:'doughnut',
+        data:{ labels:['Attained','Remaining'], datasets:[{ data:[quotaAttainmentData.attained, quotaAttainmentData.remaining], backgroundColor:['rgba(79,70,229,1)','rgba(229,231,235,1)'], borderColor:'#fff', borderWidth:2 }] },
+        options:{ responsive:true, maintainAspectRatio:true, rotation:-Math.PI, circumference:Math.PI, cutout:'75%', plugins:{legend:{display:false}, tooltip:{callbacks:{label:(ctx)=>` ${ctx.label}: ${ctx.parsed}%`}}} }
+    });
+
+    // 4. Revenue by Product Line
+    new Chart(document.getElementById('revenueByProductChart'), {
+        type:'line',
+        data:{
+            labels: revenueByProductData.labels,
+            datasets:[
+                { label:'Product A', data: revenueByProductData.productA, borderColor:'rgba(79,70,229,1)', backgroundColor:'rgba(79,70,229,0.2)', fill:true, tension:0.3 },
+                { label:'Product B', data: revenueByProductData.productB, borderColor:'rgba(59,130,246,1)', backgroundColor:'rgba(59,130,246,0.2)', fill:true, tension:0.3 },
+                { label:'Product C', data: revenueByProductData.productC, borderColor:'rgba(16,185,129,1)', backgroundColor:'rgba(16,185,129,0.2)', fill:true, tension:0.3 }
+            ]
+        },
+        options:{ responsive:true, maintainAspectRatio:false, scales:{y:{stacked:true, beginAtZero:true, ticks:{callback:v=>'$'+(v/1000)+'k'}}}, plugins:{legend:{position:'top',align:'end'}, tooltip:{mode:'index', intersect:false, callbacks:{label:ctx=>` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}`}}}, interaction:{mode:'index', intersect:false} }
+    });
+
+    // 5. Sales Rep Performance (Bubble)
+    new Chart(document.getElementById('salesRepPerformanceChart'), {
+        type:'bubble',
+        data:{ datasets:[{ label:'Sales Reps', data: salesRepPerformanceData, backgroundColor:'rgba(79,70,229,0.6)', borderColor:'rgba(79,70,229,1)' }] },
+        options:{ responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, title:{display:true,text:'Avg. Deal Value ($)'}, ticks:{callback:v=>'$'+(v/1000)+'k'}}, x:{beginAtZero:true,title:{display:true,text:'Number of Deals'}}}, plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>`${ctx.raw.label} - Deals: ${ctx.raw.x}, Avg Value: $${ctx.raw.y.toLocaleString()}, Win Rate: ${ctx.raw.r}%`}}} }
+    });
+
+    lucide.createIcons();
+});
+</script>
+
+</body>
+</html>

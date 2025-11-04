@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM - Contacts</title>
+    <!-- 1. Include Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Include Lucide Icon Library -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+
+        /* Ensure layout is fullscreen */
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent body scroll */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* Base styles for nav links */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 1rem;
+            border-radius: 0.375rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500; /* medium */
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-link:hover {
+            background-color: #f3f4f6; /* gray-100 */
+            color: #111827; /* gray-900 */
+        }
+        .nav-link.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: #ffffff; /* white */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Modal styles */
+        .modal {
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .modal.flex {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transition: transform 0.2s ease-in-out;
+            transform: translateY(-20px);
+        }
+        .modal.flex .modal-content {
+            transform: translateY(0);
+        }
+        
+        /* Form inputs */
+        .form-input, .form-select {
+            display: block;
+            width: 100%;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db; /* gray-300 */
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            border-color: #4f46e5; /* indigo-600 */
+            box-shadow: 0 0 0 2px #c7d2fe; /* indigo-200 */
+        }
+        
+        /* Base button styles */
+        .btn {
+            display: inline-flex;
+            items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .btn-primary {
+            background-color: #4f46e5; /* indigo-600 */
+            color: #fff;
+            border-color: #4f46e5;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca; /* indigo-700 */
+        }
+        .btn-secondary-outline {
+            background-color: #fff;
+            color: #374151; /* gray-700 */
+            border-color: #d1d5db; /* gray-300 */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .btn-secondary-outline:hover {
+            background-color: #f9fafb; /* gray-50 */
+        }
+        .btn-danger {
+            background-color: #dc2626; /* red-600 */
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c; /* red-700 */
+        }
+        
+        /* Activity timeline tabs */
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            color: #6b7280; /* gray-500 */
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active {
+            color: #4f46e5; /* indigo-600 */
+            border-bottom-color: #4f46e5;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div class="flex h-screen bg-white">
+        <!-- Sidebar Navigation -->
+        <nav class="w-64 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
+            <div class="h-16 flex-shrink-0 flex items-center justify-center border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-indigo-600">ApexCRM</h2>
+            </div>
+            <div class="flex-grow overflow-y-auto">
+                <ul class="py-4">
+                    <!-- Main Navigation -->
+                    <li><a href="/index.html" class="nav-link " data-page="page-dashboard"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    
+                    <!-- Sales Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Sales</li>
+                    <li><a href="/contacts.html" class="nav-link active" data-page="page-contact-list"><i data-lucide="users" class="w-5 h-5 mr-3"></i>Contacts</a></li>
+                    <li><a href="/companies.html" class="nav-link" data-page="page-company-list"><i data-lucide="building-2" class="w-5 h-5 mr-3"></i>Companies</a></li>
+                    <li><a href="/deals_pipeline.html" class="nav-link" data-page="page-deal-pipeline"><i data-lucide="kanban" class="w-5 h-5 mr-3"></i>Deals Pipeline</a></li>
+                    
+                    <!-- Service Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</li>
+                    <li><a href="/supportticket.html" class="nav-link" data-page="page-ticket-list"><i data-lucide="life-buoy" class="w-5 h-5 mr-3"></i>Support Tickets</a></li>
+                    
+                    <!-- Marketing Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Marketing</li>
+                    <li><a href="/campaigns.html" class="nav-link" data-page="page-campaign-list"><i data-lucide="send" class="w-5 h-5 mr-3"></i>Campaigns</a></li>
+                    
+                    <!-- Analytics & Tools -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Analytics & Tools</li>
+                    <li><a href="/reports.html" class="nav-link" data-page="page-reports"><i data-lucide="pie-chart" class="w-5 h-5 mr-3"></i>Reports</a></li>
+                    <li><a href="/automation.html" class="nav-link" data-page="page-automation"><i data-lucide="zap" class="w-5 h-5 mr-3"></i>Automation</a></li>
+                    <li><a href="/calender.html" class="nav-link" data-page="page-calendar"><i data-lucide="calendar" class="w-5 h-5 mr-3"></i>Calendar</a></li>
+                </ul>
+            </div>
+            <a href="/profile.html" class="block" data-page="page-calendar">
+    <div class="flex-shrink-0 p-4 border-t border-gray-200 hover:bg-gray-50">
+        <div class="flex items-center">
+            <img class="w-10 h-10 rounded-full" src="https://placehold.co/40x40/93c5fd/FFFFFF?text=A" alt="Alex Johnson">
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900">Alex Johnson</p>
+                <p class="text-xs text-gray-500">Sales Manager</p>
+            </div>
+        </div>
+    </div>
+</a>
+        </nav>
+
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto">
+            
+            <!-- Page: Contacts List -->
+            <section id="page-contact-list" class="page p-6 md:p-10">
+                <!-- Page Header -->
+                <div class="flex items-center justify-between mb-6">
+                    <h1 class="text-3xl font-bold text-gray-900">Contacts</h1>
+                    <button id="add-contact-btn" class="btn btn-primary">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add Contact
+                    </button>
+                </div>
+                
+                <!-- Filters -->
+                <div class="mb-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4">
+                    <div class="relative flex-grow">
+                        <input type="text" placeholder="Search contacts..." class="form-input pl-10">
+                        <i data-lucide="search" class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    </div>
+                    <button class="btn btn-secondary-outline">
+                        <i data-lucide="filter" class="w-4 h-4 mr-2"></i> Filter
+                    </button>
+                    <button class="btn btn-secondary-outline">
+                        <i data-lucide="view" class="w-4 h-4 mr-2"></i> Saved Views
+                    </button>
+                </div>
+                
+                <!-- Contacts Table -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <table class="w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="contact-list-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Page: Contact Detail -->
+            <section id="page-contact-detail" class="page hidden flex flex-col h-full">
+                <!-- Detail Page Header -->
+                <div class="flex-shrink-0 bg-white border-b border-gray-200 shadow-sm p-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <button id="back-to-list-btn" class="btn btn-secondary-outline p-2">
+                                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                            </button>
+                            <h2 id="detail-contact-name-header" class="text-2xl font-bold text-gray-900">John Doe</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="btn btn-secondary-outline">Follow</button>
+                            <button class="btn btn-primary contact-edit-btn" data-id="">Edit</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 3-Column Layout -->
+                <div class="flex-1 flex overflow-hidden">
+                    
+                    <!-- Col 1: Details -->
+                    <div class="w-1/4 flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto p-6 space-y-6">
+                        <h3 class="text-lg font-semibold text-gray-900">Contact Details</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm font-medium text-gray-500">Email</label>
+                                <p id="detail-contact-email" class="text-gray-900">john@techsolutions.com</p>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-500">Phone</label>
+                                <p id="detail-contact-phone" class="text-gray-900">555-1234</p>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-500">Status</label>
+                                <p id="detail-contact-status" class="text-gray-900">Lead</p>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-500">Owner</label>
+                                <p id="detail-contact-owner" class="text-gray-900">Sarah Chen</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Col 2: Activity Timeline -->
+                    <div class="flex-1 overflow-y-auto p-6">
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                            <!-- Activity Tabs -->
+                            <div class="flex border-b border-gray-200">
+                                <button class="tab-btn active" data-tab="tab-log-call"><i data-lucide="phone" class="w-4 h-4 mr-2 inline-block"></i>Log Call</button>
+                                <button class="tab-btn" data-tab="tab-log-email"><i data-lucide="mail" class="w-4 h-4 mr-2 inline-block"></i>Email</button>
+                                <button class="tab-btn" data-tab="tab-log-meeting"><i data-lucide="calendar-plus" class="w-4 h-4 mr-2 inline-block"></i>Meeting</button>
+                            </div>
+                            
+                            <!-- Tab Content -->
+                            <div class="p-4">
+                                <div id="tab-log-call" class="tab-content space-y-4">
+                                    <textarea id="log-call-notes" class="form-input" rows="3" placeholder="Add call notes..."></textarea>
+                                    <button id="save-log-call-btn" class="btn btn-primary">Log Call</button>
+                                </div>
+                                <div id="tab-log-email" class="tab-content hidden space-y-4">
+                                    <input type="text" id="log-email-subject" class="form-input" placeholder="Subject">
+                                    <textarea id="log-email-body" class="form-input" rows="4" placeholder="Email body..."></textarea>
+                                    <button id="save-log-email-btn" class="btn btn-primary">Send Email</button>
+                                </div>
+                                <div id="tab-log-meeting" class="tab-content hidden space-y-4">
+                                    <input type="text" id="log-meeting-title" class="form-input" placeholder="Meeting Title">
+                                    <input type="datetime-local" id="log-meeting-time" class="form-input">
+                                    <textarea id="log-meeting-agenda" class="form-input" rows="3" placeholder="Agenda..."></textarea>
+                                    <button id="save-log-meeting-btn" class="btn btn-primary">Log Meeting</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Timeline -->
+                        <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-4">Activity Timeline</h3>
+                        <div id="activity-timeline" class="space-y-6">
+                            <!-- JS will populate this -->
+                        </div>
+                    </div>
+                    
+                    <!-- Col 3: Related Lists -->
+                    <div class="w-1/4 flex-shrink-0 bg-white border-l border-gray-200 overflow-y-auto p-6 space-y-6">
+                        <!-- Related Company -->
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <h4 class="text-sm font-semibold text-gray-900 mb-2">Company</h4>
+                            <div id="related-company">
+                                <!-- JS will populate this -->
+                            </div>
+                        </div>
+                        <!-- Related Deals -->
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <h4 class="text-sm font-semibold text-gray-900 mb-2">Related Deals</h4>
+                            <div id="related-deals" class="space-y-2">
+                                <!-- JS will populate this -->
+                            </div>
+                        </div>
+                        <!-- Related Tickets -->
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <h4 class="text-sm font-semibold text-gray-900 mb-2">Support Tickets</h4>
+                            <div id="related-tickets" class="space-y-2">
+                                <!-- JS will populate this -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Contact Add/Edit Modal -->
+    <div id="contact-modal" class="modal hidden fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+            <h2 id="contact-modal-title" class="text-2xl font-bold mb-6">Add New Contact</h2>
+            <form id="contact-form" class="space-y-4">
+                <input type="hidden" id="contact-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="contact-name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" id="contact-name" class="form-input mt-1" required>
+                    </div>
+                    <div>
+                        <label for="contact-email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="contact-email" class="form-input mt-1" required>
+                    </div>
+                </div>
+                <div>
+                    <label for="contact-phone" class="block text-sm font-medium text-gray-700">Phone</label>
+                    <input type="tel" id="contact-phone" class="form-input mt-1">
+                </div>
+                <div>
+                    <label for="contact-company-select" class="block text-sm font-medium text-gray-700">Company</label>
+                    <select id="contact-company-select" class="form-select mt-1"></select>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="contact-status-select" class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="contact-status-select" class="form-select mt-1"></select>
+                    </div>
+                    <div>
+                        <label for="contact-owner-select" class="block text-sm font-medium text-gray-700">Owner</label>
+                        <select id="contact-owner-select" class="form-select mt-1"></select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" class="btn btn-secondary-outline modal-close-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- JavaScript Application Logic for Contacts -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            // --- MOCK DATABASE ---
+            // (Same as dashboard.html for consistency)
+            let users = {
+                1: { name: "Alex Johnson", team: "Sales" }, 2: { name: "Sarah Chen", team: "Sales" },
+                3: { name: "David Kim", team: "Sales" }, 4: { name: "Maria Garcia", team: "Marketing" },
+                5: { name: "James Smith", team: "Support" },
+            };
+            let companies = [
+                { id: 101, name: "Tech Solutions", industry: "Technology", phone: "555-1234", owner: 2 },
+                { id: 102, name: "Marketing Inc.", industry: "Marketing", phone: "555-5678", owner: 3 },
+                { id: 103, name: "Web Designers", industry: "Design", phone: "555-8765", owner: 2 },
+                { id: 104, name: "Data Corp", industry: "Analytics", phone: "555-4321", owner: 1 },
+            ];
+            let contacts = [
+                { id: 1, name: "John Doe", email: "john@techsolutions.com", phone: "555-1234", companyId: 101, status: "Lead", owner: 2 },
+                { id: 2, name: "Jane Smith", email: "jane@marketinginc.com", phone: "555-5678", companyId: 102, status: "Customer", owner: 3 },
+                { id: 3, name: "Mike Johnson", email: "mike@webdesigners.com", phone: "555-8765", companyId: 103, status: "Contacted", owner: 2 },
+                { id: 4, name: "Emily White", email: "emily@datacorp.com", phone: "555-4321", companyId: 104, status: "Lead", owner: 1 },
+            ];
+            const CONTACT_STATUSES = ["Lead", "Contacted", "Proposal", "Customer", "Lost"];
+            let deals = [
+                { id: 201, name: "Tech Solutions Website", companyId: 101, value: 15000, stage: "Proposal Sent", owner: 2, contactIds: [1] },
+                { id: 202, name: "Marketing Inc. Campaign", companyId: 102, value: 30000, stage: "Won", owner: 3, contactIds: [2] },
+                { id: 203, name: "Web Designers SEO", companyId: 103, value: 5000, stage: "Negotiation", owner: 2, contactIds: [3] },
+                { id: 204, name: "Data Corp Analytics", companyId: 104, value: 25000, stage: "New Lead", owner: 1, contactIds: [4] },
+                { id: 205, name: "Tech Solutions Retainer", companyId: 101, value: 50000, stage: "Contacted", owner: 1, contactIds: [1] },
+            ];
+            let tickets = [
+                { id: 301, subject: "Billing Question", contactId: 2, status: "Open", assignee: 5 },
+                { id: 302, subject: "Can't log in", contactId: 3, status: "New", assignee: 5 },
+                { id: 303, subject: "Product Idea", contactId: 1, status: "Closed", assignee: 5 },
+            ];
+            // Activity log for contacts
+            let activities = [
+                { id: 501, type: "note", contactId: 1, date: "2 days ago", user: "Alex Johnson", text: "Initial call, seems interested in our web package." },
+                { id: 502, type: "call", contactId: 2, date: "Yesterday @ 2:30 PM", user: "David Kim", notes: "Discussed Q4 campaign. Sent follow-up." },
+                { id: 503, type: "meeting", contactId: 2, date: "Today @ 10:00 AM", user: "Sarah Chen", title: "Project Kickoff", agenda: "Discuss timeline and deliverables." },
+                { id: 504, type: "email", contactId: 1, date: "3 days ago", user: "Alex Johnson", subject: "Introductory Call", body: "Hi John, excited to chat..." },
+            ];
+            
+            // --- Global State ---
+            let currentContactId = null; // For the detail page
+
+            // --- Utility Functions ---
+            function escapeHTML(str) {
+                if (!str) return "";
+                return str.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+            
+            function getNextId(arr) {
+                return arr.length > 0 ? Math.max(...arr.map(item => item.id)) + 1 : 1;
+            }
+            
+            function showPage(pageId) {
+                document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
+                document.getElementById(pageId)?.classList.remove('hidden');
+            }
+            
+            function populateSelect(selectEl, options, keyField = 'id', valueField = 'name') {
+                selectEl.innerHTML = '<option value="">-- Select --</option>';
+                options.forEach(option => {
+                    selectEl.innerHTML += `<option value="${option[keyField]}">${escapeHTML(option[valueField])}</option>`;
+                });
+            }
+            
+            function populateSelectArray(selectEl, optionsArray) {
+                selectEl.innerHTML = '<option value="">-- Select --</option>';
+                optionsArray.forEach(option => {
+                    selectEl.innerHTML += `<option value="${option}">${escapeHTML(option)}</option>`;
+                });
+            }
+
+            // --- Render Contact List ---
+            function renderContactList() {
+                const tableBody = document.getElementById("contact-list-table-body");
+                tableBody.innerHTML = "";
+                
+                contacts.forEach(contact => {
+                    const company = companies.find(c => c.id === contact.companyId);
+                    const owner = users[contact.owner];
+                    
+                    const row = document.createElement("tr");
+                    row.className = "hover:bg-gray-50";
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="#" class="text-indigo-600 hover:text-indigo-900 font-medium contact-detail-link" data-id="${contact.id}">${escapeHTML(contact.name)}</a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${escapeHTML(contact.email)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${escapeHTML(contact.phone)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${company ? escapeHTML(company.name) : 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${escapeHTML(contact.status)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${owner ? escapeHTML(owner.name) : 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button class="text-indigo-600 hover:text-indigo-900 contact-edit-btn" data-id="${contact.id}">Edit</button>
+                            <button class="text-red-600 hover:text-red-900 ml-4 contact-delete-btn" data-id="${contact.id}">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                lucide.createIcons();
+            }
+
+            // --- Contact Modal Logic ---
+            const contactModal = document.getElementById("contact-modal");
+            
+            function openContactModal(contactId = null) {
+                const form = document.getElementById("contact-form");
+                form.reset();
+                document.getElementById("contact-id").value = "";
+                
+                // Populate selects
+                populateSelect(document.getElementById("contact-company-select"), companies);
+                populateSelectArray(document.getElementById("contact-status-select"), CONTACT_STATUSES);
+                populateSelect(document.getElementById("contact-owner-select"), Object.values(users), 'name', 'name'); // Simple demo
+                
+                if (contactId) {
+                    // Edit Mode
+                    document.getElementById("contact-modal-title").textContent = "Edit Contact";
+                    const contact = contacts.find(c => c.id === contactId);
+                    if (contact) {
+                        document.getElementById("contact-id").value = contact.id;
+                        document.getElementById("contact-name").value = contact.name;
+                        document.getElementById("contact-email").value = contact.email;
+                        document.getElementById("contact-phone").value = contact.phone;
+                        document.getElementById("contact-company-select").value = contact.companyId;
+                        document.getElementById("contact-status-select").value = contact.status;
+                        const owner = users[contact.owner];
+                        document.getElementById("contact-owner-select").value = owner ? owner.name : '';
+                    }
+                } else {
+                    // Add Mode
+                    document.getElementById("contact-modal-title").textContent = "Add New Contact";
+                }
+                contactModal.classList.remove("hidden");
+                contactModal.classList.add("flex");
+            }
+            
+            function closeContactModal() {
+                contactModal.classList.add("hidden");
+                contactModal.classList.remove("flex");
+            }
+            
+            document.getElementById("contact-form").addEventListener("submit", e => {
+                e.preventDefault();
+                const id = parseInt(document.getElementById("contact-id").value);
+                const ownerName = document.getElementById("contact-owner-select").value;
+                const owner = Object.values(users).find(u => u.name === ownerName);
+                
+                const contactData = {
+                    name: document.getElementById("contact-name").value,
+                    email: document.getElementById("contact-email").value,
+                    phone: document.getElementById("contact-phone").value,
+                    companyId: parseInt(document.getElementById("contact-company-select").value),
+                    status: document.getElementById("contact-status-select").value,
+                    owner: owner ? Object.keys(users).find(k => users[k] === owner) : null,
+                };
+
+                if (id) {
+                    const index = contacts.findIndex(c => c.id === id);
+                    if (index !== -1) contacts[index] = { ...contacts[index], ...contactData };
+                } else {
+                    contactData.id = getNextId(contacts);
+                    contacts.push(contactData);
+                }
+                
+                renderContactList();
+                closeContactModal();
+            });
+
+            // --- Contact Detail Page Logic ---
+            function showContactDetail(contactId) {
+                currentContactId = contactId;
+                const contact = contacts.find(c => c.id === contactId);
+                if (!contact) return;
+                
+                const company = companies.find(c => c.id === contact.companyId);
+                const owner = users[contact.owner];
+                
+                // Fill Header
+                document.getElementById("detail-contact-name-header").textContent = escapeHTML(contact.name);
+                document.querySelector(".contact-edit-btn").dataset.id = contact.id;
+
+                // Fill Col 1: Details
+                document.getElementById("detail-contact-email").textContent = escapeHTML(contact.email);
+                document.getElementById("detail-contact-phone").textContent = escapeHTML(contact.phone);
+                document.getElementById("detail-contact-status").textContent = escapeHTML(contact.status);
+                document.getElementById("detail-contact-owner").textContent = owner ? escapeHTML(owner.name) : "N/A";
+                
+                // Fill Col 2: Activity Timeline
+                renderActivityTimeline(contactId);
+                
+                // Fill Col 3: Related Lists
+                // Company
+                const companyEl = document.getElementById("related-company");
+                if (company) {
+                    companyEl.innerHTML = `<a href="#" class="text-indigo-600 font-medium">${escapeHTML(company.name)}</a>`;
+                } else {
+                    companyEl.innerHTML = `<p class="text-sm text-gray-500">No company linked.</p>`;
+                }
+                
+                // Deals
+                const dealsEl = document.getElementById("related-deals");
+                const relatedDeals = deals.filter(d => d.contactIds.includes(contactId));
+                if (relatedDeals.length > 0) {
+                    dealsEl.innerHTML = relatedDeals.map(deal => `
+                        <div class="text-sm">
+                            <a href="#" class="text-indigo-600 font-medium">${escapeHTML(deal.name)}</a>
+                            <p class="text-gray-500">$${deal.value.toLocaleString()} &bull; ${escapeHTML(deal.stage)}</p>
+                        </div>
+                    `).join("");
+                } else {
+                    dealsEl.innerHTML = `<p class="text-sm text-gray-500">No related deals.</p>`;
+                }
+
+                // Tickets
+                const ticketsEl = document.getElementById("related-tickets");
+                const relatedTickets = tickets.filter(t => t.contactId === contactId);
+                if (relatedTickets.length > 0) {
+                    ticketsEl.innerHTML = relatedTickets.map(ticket => `
+                        <div class="text-sm">
+                            <a href="#" class="text-indigo-600 font-medium">${escapeHTML(ticket.subject)}</a>
+                            <p class="text-gray-500">Status: ${escapeHTML(ticket.status)}</p>
+                        </div>
+                    `).join("");
+                } else {
+                    ticketsEl.innerHTML = `<p class="text-sm text-gray-500">No support tickets.</p>`;
+                }
+
+                showPage("page-contact-detail");
+                lucide.createIcons();
+            }
+            
+            function renderActivityTimeline(contactId) {
+                const timelineEl = document.getElementById("activity-timeline");
+                timelineEl.innerHTML = "";
+                const contactActivities = activities
+                    .filter(a => a.contactId === contactId)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date)); // Simple date sort, fails on "ago"
+                
+                if (contactActivities.length === 0) {
+                    timelineEl.innerHTML = `<p class="text-sm text-gray-500 text-center py-4">No activities logged.</p>`;
+                    return;
+                }
+                
+                contactActivities.forEach(activity => {
+                    let icon, title, body;
+                    switch(activity.type) {
+                        case 'call':
+                            icon = 'phone';
+                            title = `Logged a call with ${escapeHTML(activity.user)}`;
+                            body = `<p class="text-sm text-gray-600">${escapeHTML(activity.notes)}</p>`;
+                            break;
+                        case 'email':
+                            icon = 'mail';
+                            title = `Email - ${escapeHTML(activity.subject)}`;
+                            body = `<div class="text-sm text-gray-600 p-3 border rounded bg-gray-50">${escapeHTML(activity.body)}</div>`;
+                            break;
+                        case 'meeting':
+                            icon = 'calendar-plus';
+                            title = `Meeting: ${escapeHTML(activity.title)}`;
+                            body = `<p class="text-sm text-gray-600">Agenda: ${escapeHTML(activity.agenda)}</p>`;
+                            break;
+                        default: // 'note'
+                            icon = 'sticky-note';
+                            title = `Note added by ${escapeHTML(activity.user)}`;
+                            body = `<p class="text-sm text-gray-600">${escapeHTML(activity.text)}</p>`;
+                    }
+                    
+                    timelineEl.innerHTML += `
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                <i data-lucide="${icon}" class="w-5 h-5 text-gray-500"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="font-medium text-gray-900">${title}</h4>
+                                <p class="text-sm text-gray-500 mb-2">${escapeHTML(activity.date)}</p>
+                                ${body}
+                            </div>
+                        </div>
+                    `;
+                });
+                lucide.createIcons();
+            }
+            
+            // --- Event Listeners ---
+            
+            // Open modal
+            document.getElementById("add-contact-btn").addEventListener("click", () => openContactModal());
+            
+            // Close modal
+            contactModal.querySelectorAll('.modal-close-btn').forEach(btn => {
+                btn.addEventListener("click", closeContactModal);
+            });
+            contactModal.addEventListener("click", e => {
+                if (e.target === contactModal) closeContactModal();
+            });
+            
+            // Table clicks (Edit, Delete, View Detail)
+            document.getElementById("contact-list-table-body").addEventListener("click", e => {
+                e.preventDefault();
+                const target = e.target;
+                
+                if (target.classList.contains("contact-detail-link")) {
+                    const id = parseInt(target.dataset.id);
+                    showContactDetail(id);
+                }
+                if (target.classList.contains("contact-edit-btn")) {
+                    const id = parseInt(target.dataset.id);
+                    openContactModal(id);
+                }
+                if (target.classList.contains("contact-delete-btn")) {
+                    const id = parseInt(target.dataset.id);
+                    if (confirm("Are you sure you want to delete this contact?")) {
+                        contacts = contacts.filter(c => c.id !== id);
+                        renderContactList();
+                    }
+                }
+            });
+            
+            // Detail Page Clicks
+            document.getElementById("back-to-list-btn").addEventListener("click", () => showPage("page-contact-list"));
+            document.querySelector("#page-contact-detail .contact-edit-btn").addEventListener("click", e => {
+                const id = parseInt(e.currentTarget.dataset.id);
+                openContactModal(id);
+            });
+            
+            // Activity Tabs
+            document.querySelectorAll(".tab-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+                    document.getElementById(btn.dataset.tab)?.classList.remove("hidden");
+                });
+            });
+            
+            // Log Activity Buttons
+            document.getElementById("save-log-call-btn").addEventListener("click", () => {
+                const notes = document.getElementById("log-call-notes").value;
+                if (!notes) return;
+                activities.push({
+                    id: getNextId(activities), type: 'call', contactId: currentContactId,
+                    date: new Date().toLocaleString(), user: "Alex Johnson", notes: notes
+                });
+                renderActivityTimeline(currentContactId);
+                document.getElementById("log-call-notes").value = "";
+            });
+            
+            document.getElementById("save-log-email-btn").addEventListener("click", () => {
+                const subject = document.getElementById("log-email-subject").value;
+                const body = document.getElementById("log-email-body").value;
+                if (!subject || !body) return;
+                activities.push({
+                    id: getNextId(activities), type: 'email', contactId: currentContactId,
+                    date: new Date().toLocaleString(), user: "Alex Johnson", subject: subject, body: body
+                });
+                renderActivityTimeline(currentContactId);
+                document.getElementById("log-email-subject").value = "";
+                document.getElementById("log-email-body").value = "";
+            });
+            
+            document.getElementById("save-log-meeting-btn").addEventListener("click", () => {
+                const title = document.getElementById("log-meeting-title").value;
+                const agenda = document.getElementById("log-meeting-agenda").value;
+                if (!title) return;
+                activities.push({
+                    id: getNextId(activities), type: 'meeting', contactId: currentContactId,
+                    date: new Date().toLocaleString(), user: "Alex Johnson", title: title, agenda: agenda
+                });
+                renderActivityTimeline(currentContactId);
+                document.getElementById("log-meeting-title").value = "";
+                document.getElementById("log-meeting-agenda").value = "";
+            });
+
+            // --- Initial Load ---
+            function init() {
+                renderContactList();
+                showPage("page-contact-list");
+                lucide.createIcons();
+            }
+            
+            init();
+        });
+    </script>
+</body>
+</html>

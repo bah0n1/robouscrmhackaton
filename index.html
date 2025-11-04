@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Dashboard</title>
+    <!-- 1. Include Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Include Lucide Icon Library -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        /* Custom scrollbar for a more modern look */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+
+        /* Ensure layout is fullscreen */
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent body scroll */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* Simple bar chart for dashboard */
+        .chart-bar { background-color: #3b82f6; /* blue-500 */ transition: height 0.3s ease; }
+        
+        /* Base styles for nav links (for visual consistency) */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 1rem;
+            border-radius: 0.375rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500; /* medium */
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-link:hover {
+            background-color: #f3f4f6; /* gray-100 */
+            color: #111827; /* gray-900 */
+        }
+        .nav-link.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: #ffffff; /* white */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div class="flex h-screen bg-white">
+        <!-- Sidebar Navigation -->
+        <nav class="w-64 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
+            <div class="h-16 flex-shrink-0 flex items-center justify-center border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-indigo-600">ApexCRM</h2>
+            </div>
+            <div class="flex-grow overflow-y-auto">
+                <ul class="py-4">
+                    <!-- Main Navigation -->
+                    <li><a href="/index.html" class="nav-link active" data-page="page-dashboard"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    
+                    <!-- Sales Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Sales</li>
+                    <li><a href="/contacts.html" class="nav-link" data-page="page-contact-list"><i data-lucide="users" class="w-5 h-5 mr-3"></i>Contacts</a></li>
+                    <li><a href="/companies.html" class="nav-link" data-page="page-company-list"><i data-lucide="building-2" class="w-5 h-5 mr-3"></i>Companies</a></li>
+                    <li><a href="/deals_pipeline.html" class="nav-link" data-page="page-deal-pipeline"><i data-lucide="kanban" class="w-5 h-5 mr-3"></i>Deals Pipeline</a></li>
+                    
+                    <!-- Service Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</li>
+                    <li><a href="/supportticket.html" class="nav-link" data-page="page-ticket-list"><i data-lucide="life-buoy" class="w-5 h-5 mr-3"></i>Support Tickets</a></li>
+                    
+                    <!-- Marketing Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Marketing</li>
+                    <li><a href="/campaigns.html" class="nav-link" data-page="page-campaign-list"><i data-lucide="send" class="w-5 h-5 mr-3"></i>Campaigns</a></li>
+                    
+                    <!-- Analytics & Tools -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Analytics & Tools</li>
+                    <li><a href="/reports.html" class="nav-link" data-page="page-reports"><i data-lucide="pie-chart" class="w-5 h-5 mr-3"></i>Reports</a></li>
+                    <li><a href="/automation.html" class="nav-link" data-page="page-automation"><i data-lucide="zap" class="w-5 h-5 mr-3"></i>Automation</a></li>
+                    <li><a href="/calender.html" class="nav-link" data-page="page-calendar"><i data-lucide="calendar" class="w-5 h-5 mr-3"></i>Calendar</a></li>
+                </ul>
+            </div>
+            <a href="/profile.html" class="block" data-page="page-calendar">
+    <div class="flex-shrink-0 p-4 border-t border-gray-200 hover:bg-gray-50">
+        <div class="flex items-center">
+            <img class="w-10 h-10 rounded-full" src="https://placehold.co/40x40/93c5fd/FFFFFF?text=A" alt="Alex Johnson">
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900">Alex Johnson</p>
+                <p class="text-xs text-gray-500">Sales Manager</p>
+            </div>
+        </div>
+    </div>
+</a>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto">
+            
+            <!-- Page: Dashboard (High-Fidelity) -->
+            <section id="page-dashboard" class="page p-6 md:p-10">
+                <h1 class="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-500">Pipeline Value</span>
+                            <i data-lucide="dollar-sign" class="w-5 h-5 text-green-500"></i>
+                        </div>
+                        <p id="stat-pipeline-value" class="text-3xl font-semibold text-gray-900 mt-2">$0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-500">New Leads</span>
+                            <i data-lucide="user-plus" class="w-5 h-5 text-blue-500"></i>
+                        </div>
+                        <p id="stat-new-leads" class="text-3xl font-semibold text-gray-900 mt-2">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-500">Open Tickets</span>
+                            <i data-lucide="life-buoy" class="w-5 h-5 text-yellow-500"></i>
+                        </div>
+                        <p id="stat-open-tickets" class="text-3xl font-semibold text-gray-900 mt-2">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-500">Active Campaigns</span>
+                            <i data-lucide="send" class="w-5 h-5 text-indigo-500"></i>
+                        </div>
+                        <p id="stat-active-campaigns" class="text-3xl font-semibold text-gray-900 mt-2">0</p>
+                    </div>
+                </div>
+                
+                <!-- Dashboard Columns -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                    <!-- Column 1: Pipeline Chart -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Deal Pipeline by Stage</h3>
+                        <div class="h-80 flex items-end gap-2 px-4" id="dashboard-chart-container">
+                            <!-- JS will populate this -->
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2: My Tasks -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">My Tasks (Demo)</h3>
+                        <ul class="divide-y divide-gray-200">
+                            <li class="py-3">
+                                <p class="font-medium text-gray-900">Follow up with Tech Solutions</p>
+                                <p class="text-sm text-red-600">Due Today</p>
+                            </li>
+                            <li class="py-3">
+                                <p class="font-medium text-gray-900">Send proposal to Data Corp</p>
+                                <p class="text-sm text-yellow-600">Due Tomorrow</p>
+                            </li>
+                            <li class="py-3">
+                                <p class="font-medium text-gray-900">Prep for Marketing Inc. demo</p>
+                                <p class="text-sm text-gray-500">Due in 3 days</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- JavaScript Application Logic for Dashboard -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            // --- MOCK DATABASE (Needed for Dashboard Stats) ---
+            let users = {
+                1: { name: "Alex Johnson", team: "Sales" }, 2: { name: "Sarah Chen", team: "Sales" },
+                3: { name: "David Kim", team: "Sales" }, 4: { name: "Maria Garcia", team: "Marketing" },
+                5: { name: "James Smith", team: "Support" },
+            };
+            let companies = [
+                { id: 101, name: "Tech Solutions", industry: "Technology", phone: "555-1234", owner: 2 },
+                { id: 102, name: "Marketing Inc.", industry: "Marketing", phone: "555-5678", owner: 3 },
+                { id: 103, name: "Web Designers", industry: "Design", phone: "555-8765", owner: 2 },
+                { id: 104, name: "Data Corp", industry: "Analytics", phone: "555-4321", owner: 1 },
+            ];
+            let contacts = [
+                { id: 1, name: "John Doe", email: "john@techsolutions.com", phone: "555-1234", companyId: 101, status: "Lead", owner: 2 },
+                { id: 2, name: "Jane Smith", email: "jane@marketinginc.com", phone: "555-5678", companyId: 102, status: "Customer", owner: 3 },
+                { id: 3, name: "Mike Johnson", email: "mike@webdesigners.com", phone: "555-8765", companyId: 103, status: "Contacted", owner: 2 },
+                { id: 4, name: "Emily White", email: "emily@datacorp.com", phone: "555-4321", companyId: 104, status: "Lead", owner: 1 },
+            ];
+            const DEAL_STAGES = ["New Lead", "Contacted", "Proposal Sent", "Negotiation", "Won", "Lost"];
+            let deals = [
+                { id: 201, name: "Tech Solutions Website", companyId: 101, value: 15000, stage: "Proposal Sent", owner: 2, contactIds: [1] },
+                { id: 202, name: "Marketing Inc. Campaign", companyId: 102, value: 30000, stage: "Won", owner: 3, contactIds: [2] },
+                { id: 203, name: "Web Designers SEO", companyId: 103, value: 5000, stage: "Negotiation", owner: 2, contactIds: [3] },
+                { id: 204, name: "Data Corp Analytics", companyId: 104, value: 25000, stage: "New Lead", owner: 1, contactIds: [4] },
+                { id: 205, name: "Tech Solutions Retainer", companyId: 101, value: 50000, stage: "Contacted", owner: 1, contactIds: [1] },
+            ];
+            let tickets = [
+                { id: 301, subject: "Billing Question", contactId: 2, status: "Open", assignee: 5 },
+                { id: 302, subject: "Can't log in", contactId: 3, status: "New", assignee: 5 },
+                { id: 303, subject: "Product Idea", contactId: 1, status: "Closed", assignee: 5 },
+            ];
+            let campaigns = [
+                { id: 401, name: "Q4 Newsletter", status: "Active", budget: 1500, channel: "Email" },
+                { id: 402, name: "Spring Sale Social", status: "Planning", budget: 5000, channel: "Social Media" },
+                { id: 403, name: "Analytics Webinar", status: "Finished", budget: 2500, channel: "Webinar" },
+            ];
+            
+            // --- Utility Function ---
+            function escapeHTML(str) {
+                if (!str) return "";
+                return str.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+
+            // --- Render Dashboard ---
+            function renderDashboard() {
+                // Stats
+                const pipelineValue = deals
+                    .filter(d => d.stage !== "Won" && d.stage !== "Lost")
+                    .reduce((sum, d) => sum + d.value, 0);
+                document.getElementById("stat-pipeline-value").textContent = `$${pipelineValue.toLocaleString()}`;
+                
+                const newLeads = contacts.filter(c => c.status === "Lead").length;
+                document.getElementById("stat-new-leads").textContent = newLeads;
+
+                const openTickets = tickets.filter(t => t.status !== "Closed").length;
+                document.getElementById("stat-open-tickets").textContent = openTickets;
+                
+                const activeCampaigns = campaigns.filter(c => c.status === "Active").length;
+                document.getElementById("stat-active-campaigns").textContent = activeCampaigns;
+
+                // Chart
+                const chartContainer = document.getElementById("dashboard-chart-container");
+                chartContainer.innerHTML = "";
+                let maxStageValue = 0;
+                const stageValues = DEAL_STAGES.filter(s => s !== "Won" && s !== "Lost").map(stage => {
+                    const value = deals.filter(d => d.stage === stage).reduce((sum, d) => sum + d.value, 0);
+                    if (value > maxStageValue) maxStageValue = value;
+                    return { stage, value };
+                });
+                
+                if (maxStageValue === 0) maxStageValue = 1; // Avoid division by zero
+                
+                stageValues.forEach(item => {
+                    const heightPercent = (item.value / maxStageValue) * 100;
+                    chartContainer.innerHTML += `
+                        <div class="flex-1 flex flex-col items-center">
+                            <div class="chart-bar w-full rounded-t" style="height: ${heightPercent}%"></div>
+                            <span class="text-xs text-gray-500 mt-2">${escapeHTML(item.stage)}</span>
+                        </div>
+                    `;
+                });
+                
+                // Render icons
+                lucide.createIcons();
+            }
+
+            // --- Initial Load ---
+            function init() {
+                renderDashboard();
+                
+                // Manually render icons in sidebar
+                lucide.createIcons();
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>

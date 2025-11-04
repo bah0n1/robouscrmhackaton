@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM - Deals Pipeline</title>
+    <!-- 1. Include Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Include Lucide Icon Library -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+
+        /* Ensure layout is fullscreen */
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent body scroll */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* Base styles for nav links */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 1rem;
+            border-radius: 0.375rem;
+            color: #374151; /* gray-700 */
+            font-weight: 500; /* medium */
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-link:hover {
+            background-color: #f3f4f6; /* gray-100 */
+            color: #111827; /* gray-900 */
+        }
+        .nav-link.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: #ffffff; /* white */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Modal styles */
+        .modal {
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .modal.flex {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transition: transform 0.2s ease-in-out;
+            transform: translateY(-20px);
+        }
+        .modal.flex .modal-content {
+            transform: translateY(0);
+        }
+        
+        /* Form inputs */
+        .form-input, .form-select {
+            display: block;
+            width: 100%;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db; /* gray-300 */
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            border-color: #4f46e5; /* indigo-600 */
+            box-shadow: 0 0 0 2px #c7d2fe; /* indigo-200 */
+        }
+        
+        /* Base button styles */
+        .btn {
+            display: inline-flex;
+            items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .btn-primary {
+            background-color: #4f46e5; /* indigo-600 */
+            color: #fff;
+            border-color: #4f46e5;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca; /* indigo-700 */
+        }
+        .btn-secondary-outline {
+            background-color: #fff;
+            color: #374151; /* gray-700 */
+            border-color: #d1d5db; /* gray-300 */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .btn-secondary-outline:hover {
+            background-color: #f9fafb; /* gray-50 */
+        }
+        
+        /* Kanban styles */
+        .kanban-board {
+            display: flex;
+            gap: 1.5rem; /* 24px */
+            padding-bottom: 1rem; /* Space for horizontal scrollbar */
+        }
+        .kanban-column {
+            width: 320px;
+            flex-shrink: 0;
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 0.5rem; /* rounded-lg */
+            border: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .kanban-column-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .kanban-cards {
+            padding: 1rem;
+            height: calc(100vh - 200px); /* Adjust based on header heights */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem; /* space-y-4 */
+        }
+        .kanban-card {
+            background-color: #fff;
+            border-radius: 0.5rem; /* rounded-lg */
+            border: 1px solid #e5e7eb; /* gray-200 */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            padding: 1rem;
+            cursor: grab;
+        }
+        .kanban-card:active {
+            cursor: grabbing;
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        .kanban-card.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+        }
+        .drag-over {
+            background-color: #ebf4ff; /* blue-50 */
+            border-color: #93c5fd; /* blue-300 */
+            border-style: dashed;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div class="flex h-screen bg-white">
+        <!-- Sidebar Navigation -->
+        <nav class="w-64 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
+            <div class="h-16 flex-shrink-0 flex items-center justify-center border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-indigo-600">ApexCRM</h2>
+            </div>
+            <div class="flex-grow overflow-y-auto">
+                <ul class="py-4">
+                    <!-- Main Navigation -->
+                    <li><a href="/index.html" class="nav-link " data-page="page-dashboard"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>Dashboard</a></li>
+                    
+                    <!-- Sales Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Sales</li>
+                    <li><a href="/contacts.html" class="nav-link" data-page="page-contact-list"><i data-lucide="users" class="w-5 h-5 mr-3"></i>Contacts</a></li>
+                    <li><a href="/companies.html" class="nav-link" data-page="page-company-list"><i data-lucide="building-2" class="w-5 h-5 mr-3"></i>Companies</a></li>
+                    <li><a href="/deals_pipeline.html" class="nav-link active" data-page="page-deal-pipeline"><i data-lucide="kanban" class="w-5 h-5 mr-3"></i>Deals Pipeline</a></li>
+                    
+                    <!-- Service Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</li>
+                    <li><a href="/supportticket.html" class="nav-link" data-page="page-ticket-list"><i data-lucide="life-buoy" class="w-5 h-5 mr-3"></i>Support Tickets</a></li>
+                    
+                    <!-- Marketing Group -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Marketing</li>
+                    <li><a href="/campaigns.html" class="nav-link" data-page="page-campaign-list"><i data-lucide="send" class="w-5 h-5 mr-3"></i>Campaigns</a></li>
+                    
+                    <!-- Analytics & Tools -->
+                    <li class="px-6 mt-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Analytics & Tools</li>
+                    <li><a href="/reports.html" class="nav-link" data-page="page-reports"><i data-lucide="pie-chart" class="w-5 h-5 mr-3"></i>Reports</a></li>
+                    <li><a href="/automation.html" class="nav-link" data-page="page-automation"><i data-lucide="zap" class="w-5 h-5 mr-3"></i>Automation</a></li>
+                    <li><a href="/calender.html" class="nav-link" data-page="page-calendar"><i data-lucide="calendar" class="w-5 h-5 mr-3"></i>Calendar</a></li>
+                </ul>
+            </div>
+            <a href="/profile.html" class="block" data-page="page-calendar">
+    <div class="flex-shrink-0 p-4 border-t border-gray-200 hover:bg-gray-50">
+        <div class="flex items-center">
+            <img class="w-10 h-10 rounded-full" src="https://placehold.co/40x40/93c5fd/FFFFFF?text=A" alt="Alex Johnson">
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900">Alex Johnson</p>
+                <p class="text-xs text-gray-500">Sales Manager</p>
+            </div>
+        </div>
+    </div>
+</a>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-hidden flex flex-col">
+            
+            <!-- Page: Deals Pipeline -->
+            <section id="page-deal-pipeline" class="page flex-1 flex flex-col p-6 md:p-10 overflow-hidden">
+                <!-- Page Header -->
+                <div class="flex-shrink-0 flex items-center justify-between mb-6">
+                    <h1 class="text-3xl font-bold text-gray-900">Deals Pipeline</h1>
+                    <button id="add-deal-btn" class="btn btn-primary">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add Deal
+                    </button>
+                </div>
+                
+                <!-- Kanban Board -->
+                <div class="flex-1 overflow-x-auto">
+                    <div id="kanban-board-container" class="kanban-board">
+                        <!-- JS will populate this -->
+                    </div>
+                </div>
+            </section>
+            
+        </main>
+    </div>
+
+    <!-- Deal Add/Edit Modal -->
+    <div id="deal-modal" class="modal hidden fixed inset-0 bg-gray-600 bg-opacity-50 items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+            <h2 id="deal-modal-title" class="text-2xl font-bold mb-6">Add New Deal</h2>
+            <form id="deal-form" class="space-y-4">
+                <input type="hidden" id="deal-id">
+                <div>
+                    <label for="deal-name" class="block text-sm font-medium text-gray-700">Deal Name</label>
+                    <input type="text" id="deal-name" class="form-input mt-1" required>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="deal-company-select" class="block text-sm font-medium text-gray-700">Company</label>
+                        <select id="deal-company-select" class="form-select mt-1"></select>
+                    </div>
+                    <div>
+                        <label for="deal-value" class="block text-sm font-medium text-gray-700">Value ($)</label>
+                        <input type="number" id="deal-value" class="form-input mt-1" placeholder="e.g., 15000">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="deal-stage-select" class="block text-sm font-medium text-gray-700">Stage</label>
+                        <select id="deal-stage-select" class="form-select mt-1"></select>
+                    </div>
+                    <div>
+                        <label for="deal-owner-select" class="block text-sm font-medium text-gray-700">Owner</label>
+                        <select id="deal-owner-select" class="form-select mt-1"></select>
+                    </div>
+                </div>
+                 <div>
+                    <label for="deal-contacts-select" class="block text-sm font-medium text-gray-700">Related Contacts</label>
+                    <select id="deal-contacts-select" class="form-select mt-1" multiple></select>
+                    <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple.</p>
+                </div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" class="btn btn-secondary-outline modal-close-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Deal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- JavaScript Application Logic for Deals -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            // --- MOCK DATABASE ---
+            let users = {
+                1: { name: "Alex Johnson", team: "Sales" }, 2: { name: "Sarah Chen", team: "Sales" },
+                3: { name: "David Kim", team: "Sales" }, 4: { name: "Maria Garcia", team: "Marketing" },
+                5: { name: "James Smith", team: "Support" },
+            };
+            let companies = [
+                { id: 101, name: "Tech Solutions", industry: "Technology", phone: "555-1234", owner: 2 },
+                { id: 102, name: "Marketing Inc.", industry: "Marketing", phone: "555-5678", owner: 3 },
+                { id: 103, name: "Web Designers", industry: "Design", phone: "555-8765", owner: 2 },
+                { id: 104, name: "Data Corp", industry: "Analytics", phone: "555-4321", owner: 1 },
+            ];
+            let contacts = [
+                { id: 1, name: "John Doe", email: "john@techsolutions.com", phone: "555-1234", companyId: 101, status: "Lead", owner: 2 },
+                { id: 2, name: "Jane Smith", email: "jane@marketinginc.com", phone: "555-5678", companyId: 102, status: "Customer", owner: 3 },
+                { id: 3, name: "Mike Johnson", email: "mike@webdesigners.com", phone: "555-8765", companyId: 103, status: "Contacted", owner: 2 },
+                { id: 4, name: "Emily White", email: "emily@datacorp.com", phone: "555-4321", companyId: 104, status: "Lead", owner: 1 },
+                { id: 5, name: "Chris Lee", email: "chris@techsolutions.com", phone: "555-1235", companyId: 101, status: "Contacted", owner: 2 },
+            ];
+            const DEAL_STAGES = ["New Lead", "Contacted", "Proposal Sent", "Negotiation", "Won", "Lost"];
+            let deals = [
+                { id: 201, name: "Tech Solutions Website", companyId: 101, value: 15000, stage: "Proposal Sent", owner: 2, contactIds: [1, 5] },
+                { id: 202, name: "Marketing Inc. Campaign", companyId: 102, value: 30000, stage: "Won", owner: 3, contactIds: [2] },
+                { id: 203, name: "Web Designers SEO", companyId: 103, value: 5000, stage: "Negotiation", owner: 2, contactIds: [3] },
+                { id: 204, name: "Data Corp Analytics", companyId: 104, value: 25000, stage: "New Lead", owner: 1, contactIds: [4] },
+                { id: 205, name: "Tech Solutions Retainer", companyId: 101, value: 50000, stage: "Contacted", owner: 1, contactIds: [1] },
+            ];
+            
+            // --- Utility Functions ---
+            function escapeHTML(str) {
+                if (!str) return "";
+                return str.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            }
+            
+            function getNextId(arr) {
+                return arr.length > 0 ? Math.max(...arr.map(item => item.id)) + 1 : 1;
+            }
+            
+            function populateSelect(selectEl, options, keyField = 'id', valueField = 'name') {
+                selectEl.innerHTML = '<option value="">-- Select --</option>';
+                options.forEach(option => {
+                    selectEl.innerHTML += `<option value="${option[keyField]}">${escapeHTML(option[valueField])}</option>`;
+                });
+            }
+            
+            function populateSelectArray(selectEl, optionsArray) {
+                selectEl.innerHTML = '<option value="">-- Select --</option>';
+                optionsArray.forEach(option => {
+                    selectEl.innerHTML += `<option value="${option}">${escapeHTML(option)}</option>`;
+                });
+            }
+
+            // --- Render Kanban Board ---
+            function renderKanbanBoard() {
+                const boardContainer = document.getElementById("kanban-board-container");
+                boardContainer.innerHTML = "";
+                
+                for (const stage of DEAL_STAGES) {
+                    const stageDeals = deals.filter(deal => deal.stage === stage);
+                    const stageValue = stageDeals.reduce((sum, deal) => sum + deal.value, 0);
+                    
+                    // Create column
+                    const column = document.createElement("div");
+                    column.className = "kanban-column";
+                    column.dataset.stage = stage;
+                    
+                    column.innerHTML = `
+                        <div class="kanban-column-header">
+                            <h3 class="text-lg font-semibold text-gray-900">${escapeHTML(stage)} (${stageDeals.length})</h3>
+                            <p class="text-sm text-gray-500">$${stageValue.toLocaleString()}</p>
+                        </div>
+                        <div class="kanban-cards" data-stage="${stage}">
+                            <!-- Cards will be added here -->
+                        </div>
+                    `;
+                    
+                    // Add cards to column
+                    const cardsContainer = column.querySelector(".kanban-cards");
+                    stageDeals.forEach(deal => {
+                        const company = companies.find(c => c.id === deal.companyId);
+                        const card = document.createElement("div");
+                        card.className = "kanban-card";
+                        card.dataset.id = deal.id;
+                        card.draggable = true;
+                        
+                        card.innerHTML = `
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="font-semibold text-gray-900">${escapeHTML(deal.name)}</h4>
+                                <button class="text-gray-400 hover:text-indigo-600 deal-edit-btn" data-id="${deal.id}">
+                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-600">${company ? escapeHTML(company.name) : 'No Company'}</p>
+                            <p class="text-sm font-medium text-green-600 mt-2">$${deal.value.toLocaleString()}</p>
+                        `;
+                        cardsContainer.appendChild(card);
+                    });
+                    
+                    boardContainer.appendChild(column);
+                }
+                
+                // Add drag-and-drop listeners
+                addDragDropListeners();
+                
+                lucide.createIcons();
+            }
+
+            // --- Drag & Drop Logic ---
+            let draggedItem = null;
+            
+            function addDragDropListeners() {
+                const cards = document.querySelectorAll(".kanban-card");
+                const columns = document.querySelectorAll(".kanban-cards");
+                
+                cards.forEach(card => {
+                    card.addEventListener("dragstart", () => {
+                        draggedItem = card;
+                        setTimeout(() => card.classList.add("dragging"), 0);
+                    });
+                    
+                    card.addEventListener("dragend", () => {
+                        draggedItem.classList.remove("dragging");
+                        draggedItem = null;
+                    });
+                });
+                
+                columns.forEach(column => {
+                    column.addEventListener("dragover", e => {
+                        e.preventDefault();
+                        column.classList.add("drag-over");
+                    });
+                    
+                    column.addEventListener("dragleave", () => {
+                        column.classList.remove("drag-over");
+                    });
+                    
+                    column.addEventListener("drop", e => {
+                        e.preventDefault();
+                        column.classList.remove("drag-over");
+                        if (!draggedItem) return;
+                        
+                        // Update data
+                        const dealId = parseInt(draggedItem.dataset.id);
+                        const newStage = column.dataset.stage;
+                        const deal = deals.find(d => d.id === dealId);
+                        if (deal && deal.stage !== newStage) {
+                            deal.stage = newStage;
+                            // Re-render the whole board to update counts and totals
+                            renderKanbanBoard();
+                        } else {
+                            // Just move the card visually if it's in the same column
+                            column.appendChild(draggedItem);
+                        }
+                    });
+                });
+            }
+
+            // --- Deal Modal Logic ---
+            const dealModal = document.getElementById("deal-modal");
+            
+            function openDealModal(dealId = null) {
+                const form = document.getElementById("deal-form");
+                form.reset();
+                document.getElementById("deal-id").value = "";
+                
+                // Populate selects
+                populateSelect(document.getElementById("deal-company-select"), companies);
+                populateSelectArray(document.getElementById("deal-stage-select"), DEAL_STAGES);
+                populateSelect(document.getElementById("deal-owner-select"), Object.values(users), 'name', 'name');
+                populateSelect(document.getElementById("deal-contacts-select"), contacts);
+                
+                if (dealId) {
+                    // Edit Mode
+                    document.getElementById("deal-modal-title").textContent = "Edit Deal";
+                    const deal = deals.find(d => d.id === dealId);
+                    if (deal) {
+                        document.getElementById("deal-id").value = deal.id;
+                        document.getElementById("deal-name").value = deal.name;
+                        document.getElementById("deal-company-select").value = deal.companyId;
+                        document.getElementById("deal-value").value = deal.value;
+                        document.getElementById("deal-stage-select").value = deal.stage;
+                        const owner = users[deal.owner];
+                        document.getElementById("deal-owner-select").value = owner ? owner.name : '';
+                        
+                        // Set multiple selected contacts
+                        const contactsSelect = document.getElementById("deal-contacts-select");
+                        deal.contactIds.forEach(contactId => {
+                            const option = contactsSelect.querySelector(`option[value="${contactId}"]`);
+                            if (option) option.selected = true;
+                        });
+                    }
+                } else {
+                    // Add Mode
+                    document.getElementById("deal-modal-title").textContent = "Add New Deal";
+                }
+                dealModal.classList.remove("hidden");
+                dealModal.classList.add("flex");
+            }
+            
+            function closeDealModal() {
+                dealModal.classList.add("hidden");
+                dealModal.classList.remove("flex");
+            }
+            
+            document.getElementById("deal-form").addEventListener("submit", e => {
+                e.preventDefault();
+                const id = parseInt(document.getElementById("deal-id").value);
+                const ownerName = document.getElementById("deal-owner-select").value;
+                const owner = Object.values(users).find(u => u.name === ownerName);
+                const selectedContacts = Array.from(document.getElementById("deal-contacts-select").selectedOptions).map(opt => parseInt(opt.value));
+                
+                const dealData = {
+                    name: document.getElementById("deal-name").value,
+                    companyId: parseInt(document.getElementById("deal-company-select").value),
+                    value: parseInt(document.getElementById("deal-value").value) || 0,
+                    stage: document.getElementById("deal-stage-select").value,
+                    owner: owner ? Object.keys(users).find(k => users[k] === owner) : null,
+                    contactIds: selectedContacts
+                };
+
+                if (id) {
+                    const index = deals.findIndex(d => d.id === id);
+                    if (index !== -1) deals[index] = { ...deals[index], ...dealData };
+                } else {
+                    dealData.id = getNextId(deals);
+                    if (!dealData.stage) dealData.stage = DEAL_STAGES[0]; // Default to first stage
+                    deals.push(dealData);
+                }
+                
+                renderKanbanBoard();
+                closeDealModal();
+            });
+
+            // --- Event Listeners ---
+            
+            // Open modal
+            document.getElementById("add-deal-btn").addEventListener("click", () => openDealModal());
+            
+            // Close modal
+            dealModal.querySelectorAll('.modal-close-btn').forEach(btn => {
+                btn.addEventListener("click", closeDealModal);
+            });
+            dealModal.addEventListener("click", e => {
+                if (e.target === dealModal) closeDealModal();
+            });
+            
+            // Edit button on cards (uses event delegation)
+            document.getElementById("kanban-board-container").addEventListener("click", e => {
+                const editBtn = e.target.closest(".deal-edit-btn");
+                if (editBtn) {
+                    const id = parseInt(editBtn.dataset.id);
+                    openDealModal(id);
+                }
+            });
+
+            // --- Initial Load ---
+            function init() {
+                renderKanbanBoard();
+                lucide.createIcons();
+            }
+            
+            init();
+        });
+    </script>
+</body>
+</html>
